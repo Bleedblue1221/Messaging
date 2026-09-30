@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,10 +35,35 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Upload APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Messaging-APK
           path: |
+            **/build/outputs/apk/**/*.apk
+
+      - name: Delete Existing Latest Release
+        continue-on-error: true
+        uses: dev-drprasad/delete-tag-and-release@v1.1
+        with:
+          delete_release: true
+          tag_name: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Latest Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest Build
+          body: |
+            Automatically generated build.
+
+            Repository: ${{ github.repository }}
+            Commit: ${{ github.sha }}
+            Workflow Run: #${{ github.run_number }}
+
+            This release is automatically replaced whenever a new APK is built.
+          files: |
             **/build/outputs/apk/**/*.apk
             
