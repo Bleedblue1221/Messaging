@@ -2,7 +2,7 @@ name: Sync Upstream
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -17,18 +17,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Add upstream
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add Upstream
         run: |
           git remote add upstream https://github.com/GrapheneOS/Messaging.git
           git fetch upstream
 
-      - name: Merge upstream
+      - name: Sync with Upstream
         run: |
           git checkout main
           git merge upstream/main --no-edit
 
-      - name: Push changes
+      - name: Push Changes
         run: |
           git push origin main
           
