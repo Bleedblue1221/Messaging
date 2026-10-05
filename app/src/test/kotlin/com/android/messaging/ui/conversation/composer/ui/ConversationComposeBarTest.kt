@@ -29,6 +29,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
@@ -252,6 +253,48 @@ class ConversationComposeBarTest {
         composeTestRule
             .onNodeWithTag(CONVERSATION_SEND_BUTTON_TEST_TAG)
             .performDisabledTouchClick()
+
+        composeTestRule.runOnIdle {
+            assertEquals(0, sendClicks)
+        }
+    }
+
+    @Test
+    fun keyboardSendAction_sendsTheMessage() {
+        var sendClicks = 0
+
+        setContent(
+            messageText = "Hello",
+            isSendActionEnabled = true,
+            onSendClick = {
+                sendClicks += 1
+            },
+        )
+
+        composeTestRule
+            .onNodeWithTag(CONVERSATION_TEXT_FIELD_TEST_TAG)
+            .performImeAction()
+
+        composeTestRule.runOnIdle {
+            assertEquals(1, sendClicks)
+        }
+    }
+
+    @Test
+    fun keyboardSendAction_doesNothingWhileTheSendButtonIsDisabled() {
+        var sendClicks = 0
+
+        setContent(
+            messageText = "Hello",
+            isSendActionEnabled = false,
+            onSendClick = {
+                sendClicks += 1
+            },
+        )
+
+        composeTestRule
+            .onNodeWithTag(CONVERSATION_TEXT_FIELD_TEST_TAG)
+            .performImeAction()
 
         composeTestRule.runOnIdle {
             assertEquals(0, sendClicks)
@@ -596,6 +639,63 @@ class ConversationComposeBarTest {
 
         composeTestRule.runOnIdle {
             assertEquals(1, startRequests)
+            assertEquals(0, finishRequests)
+            assertEquals(1, cancelRequests)
+        }
+    }
+
+    @Test
+    fun longPressAndDragLeftDriftingUp_cancelsRecordingWithoutLocking() {
+        var audioRecording by mutableStateOf(ConversationAudioRecordingUiState())
+        var lockRequests = 0
+        var finishRequests = 0
+        var cancelRequests = 0
+        val cancelDragDistancePx = with(composeTestRule.density) {
+            (AUDIO_RECORD_CANCEL_THRESHOLD + 24.dp).toPx()
+        }
+        val lockDragDistancePx = with(composeTestRule.density) {
+            (AUDIO_RECORD_LOCK_THRESHOLD + 8.dp).toPx()
+        }
+
+        setContent(
+            audioRecording = { audioRecording },
+            messageText = { "" },
+            isSendActionEnabled = false,
+            shouldShowRecordAction = { true },
+            onAudioRecordingStartRequest = {
+                audioRecording = recordingAudioState()
+            },
+            onAudioRecordingFinish = {
+                finishRequests += 1
+                audioRecording = ConversationAudioRecordingUiState()
+            },
+            onAudioRecordingLock = {
+                lockRequests += 1
+                audioRecording = recordingAudioState(isLocked = true)
+                true
+            },
+            onAudioRecordingCancel = {
+                cancelRequests += 1
+                audioRecording = ConversationAudioRecordingUiState()
+            },
+        )
+
+        composeTestRule
+            .onNodeWithTag(CONVERSATION_SEND_BUTTON_TEST_TAG)
+            .performTouchInput {
+                down(center)
+                advanceEventTime(durationMillis = 700L)
+                moveBy(
+                    Offset(
+                        x = -cancelDragDistancePx,
+                        y = -lockDragDistancePx,
+                    ),
+                )
+                up()
+            }
+
+        composeTestRule.runOnIdle {
+            assertEquals(0, lockRequests)
             assertEquals(0, finishRequests)
             assertEquals(1, cancelRequests)
         }
