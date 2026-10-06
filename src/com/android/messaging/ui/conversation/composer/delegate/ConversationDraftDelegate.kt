@@ -60,7 +60,7 @@ internal interface ConversationDraftDelegate : ConversationScreenDelegate<Conver
     val attachmentLimitWarning: StateFlow<ConversationAttachmentLimitWarning?>
     val isSubjectDialogVisible: StateFlow<Boolean>
 
-    fun onMessageTextChanged(messageText: String)
+    fun onMessageTextChanged(messageText: String, messageTextRevision: Int)
 
     fun onSubjectTextChanged(subjectText: String)
 
@@ -169,8 +169,11 @@ internal class ConversationDraftDelegateImpl @Inject constructor(
         )
     }
 
-    override fun onMessageTextChanged(messageText: String) {
-        conversationDraftEditorDelegate.onMessageTextChanged(messageText = messageText)
+    override fun onMessageTextChanged(messageText: String, messageTextRevision: Int) {
+        conversationDraftEditorDelegate.onMessageTextChanged(
+            messageText = messageText,
+            messageTextRevision = messageTextRevision,
+        )
     }
 
     override fun onSubjectTextChanged(subjectText: String) {

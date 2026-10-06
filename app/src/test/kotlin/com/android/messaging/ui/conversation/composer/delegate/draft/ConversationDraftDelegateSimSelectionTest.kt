@@ -12,6 +12,7 @@ import com.android.messaging.domain.conversation.usecase.draft.ResolveDraftAttac
 import com.android.messaging.domain.conversation.usecase.draft.SendConversationDraft
 import com.android.messaging.domain.conversation.usecase.draft.model.ConversationDraftSendProtocol
 import com.android.messaging.testutil.assertThat
+import com.android.messaging.testutil.typeMessageText
 import com.android.messaging.ui.conversation.composer.delegate.ConversationDraftDelegateImpl
 import com.android.messaging.ui.conversation.composer.delegate.ConversationDraftEditorDelegateImpl
 import com.android.messaging.ui.conversation.composer.delegate.ConversationDraftTransfersImpl
@@ -77,7 +78,7 @@ internal class ConversationDraftDelegateSimSelectionTest {
         )
         runCurrent()
 
-        delegate.onMessageTextChanged(messageText = "hello")
+        delegate.typeMessageText(messageText = "hello")
         delegate.onSendClick()
         runCurrent()
 
@@ -96,7 +97,7 @@ internal class ConversationDraftDelegateSimSelectionTest {
             selfParticipantId = PICKED_SELF_PARTICIPANT_ID,
         )
 
-        delegate.onMessageTextChanged(messageText = "hello")
+        delegate.typeMessageText(messageText = "hello")
         delegate.onSendClick()
         runCurrent()
 
@@ -141,7 +142,7 @@ internal class ConversationDraftDelegateSimSelectionTest {
         )
         runCurrent()
 
-        delegate.onMessageTextChanged(messageText = "hello")
+        delegate.typeMessageText(messageText = "hello")
         delegate.onSendClick()
         runCurrent()
 
